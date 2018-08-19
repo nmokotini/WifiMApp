@@ -4,6 +4,12 @@ import android.content.Context;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
+import com.android.volley.Request;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -11,17 +17,27 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+
 import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.util.Log;
+
+import com.android.volley.toolbox.Volley;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.gson.JsonObject;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.util.ArrayList;
 
 
-
-
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
 
     private GoogleMap mMap;
 
+    /**
+     Method called when starting the activity & this is the method where most initialization is done.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,8 +46,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-    }
 
+
+
+
+    }
+    /**
+     Requests & obtains values through api
+     */
+    public ArrayList GET(){
+        String URL = "http://196.24.186.131:8080/";
+        final ArrayList data = new ArrayList();
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        //constructing the request
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                Request.Method.GET,
+                URL,
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response){
+                        try{
+                            data.add(response.getString("lat"));
+                            data.add(response.getString("lng"));
+                            data.add(response.getString("rssilvl"));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("Rest Response", error.toString());
+
+                    }
+                }
+
+        );
+        requestQueue.add(jsonObjectRequest);
+
+        return data;
+
+    }
 
     /**
      * Manipulates the map once available.
@@ -66,6 +124,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String strWifiSignalLevel = "Wifi Signal Level: "+wifiSignalLevel+"/"+rssiLevels;
         return strWifiSignalLevel;
     }
+
+
 
 
 }
