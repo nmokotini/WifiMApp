@@ -1,16 +1,20 @@
 package com.example.ntaolengmokotini.wifimapp;
 
 import android.content.Context;
-import android.support.v4.app.FragmentActivity;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
-
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -18,18 +22,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.util.Log;
-
-import com.android.volley.toolbox.Volley;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.gson.JsonObject;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +32,6 @@ import java.util.Map;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
 
     private GoogleMap mMap;
-    private ArrayList get;
 
     /**
      Method called when starting the activity & this is the method where most initialization is done.
@@ -51,14 +45,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
     }
     /**
      Requests & obtains values through api
      */
-    public ArrayList GET(){
-        String URL = "http://196.24.186.131:8080/";
-        final ArrayList data = new ArrayList();
+    /*
+    public void GET(){
+        String URL = "http://196.47.227.36:8081/api/v2/lwdata/1";
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         //constructing the request
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
@@ -68,13 +61,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response){
-                        try{
-                            data.add(response.getString("lat"));
-                            data.add(response.getString("lng"));
-                            data.add(response.getString("rssilvl"));
+                        try {
+                            lt = response.getString("lat");
+                            lg = response.getString("lng");
+                            Log.d("Response", lt);
+
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+
+
 
                     }
                 },
@@ -89,14 +86,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         );
         requestQueue.add(jsonObjectRequest);
 
-        return data;
-
     }
+    */
 
-    public void PUT(final double lat, final double lng, final int rssilvl){
+    /*
+    public void POST(final double lat, final double lng, final int rssilvl){
         String URL = "http://196.24.186.131:8080/";
         RequestQueue requestQueue = Volley.newRequestQueue(this);
-        StringRequest putRequest = new StringRequest(Request.Method.PUT, URL,
+        StringRequest postRequest = new StringRequest(Request.Method.POST, URL,
                 new Response.Listener<String>()
                 {
                     @Override
@@ -121,14 +118,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 params.put("lat", String.valueOf(lat));
                 params.put("long",String.valueOf(lng ));
                 params.put("rssilvl",String.valueOf(rssilvl));
-
                 return params;
             }
 
         };
 
-        requestQueue.add(putRequest);
+        requestQueue.add(postRequest);
     }
+    */
 
     /**
      * Manipulates the map once available.
@@ -141,23 +138,85 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        ArrayList data = GET();
-        double lat = Double.valueOf(String.valueOf(data.get(0)));
-        double lng = Double.valueOf(String.valueOf(data.get(1)));
-        String rssilvl = (String) data.get(2);
-        LatLng marker = new LatLng(lat,lng);
+        // ur for the 4th element in the db
+        String URL = "http://196.47.200.252:8081/api/v2/lwdata/4";
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        //constructing the request
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                Request.Method.GET,
+                URL,
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response){
+                        try {
+                            String lt = response.getString("lat");
+                            String lg = response.getString("lng");
+                            String rs = response.getString("rssilvl");
+                            LatLng marker = new LatLng(Double.valueOf(lt),Double.valueOf(lg));
+                            //places marker on the map
+                            mMap.addMarker(new MarkerOptions().position(marker).title("Location - WifiLevel:"+rs+"/5"));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(marker));
 
-        mMap.addMarker(new MarkerOptions().position(marker).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(marker));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("Rest Response", error.toString());
+
+                    }
+                }
+
+        );
+        requestQueue.add(jsonObjectRequest);
+
     }
 
-    protected void onStart(){
-        super.onStart();
-        ArrayList values = GET();
-        double lat = Double.valueOf(String.valueOf(values.get(0)));
-        double lng = Double.valueOf(String.valueOf(values.get(1)));
-        int rssilvl = getWifiSignalLevel();
-        PUT(lat,lng,rssilvl);
+    /**
+     * Posts the Updated location+wifilevel data
+     */
+    @Override
+    protected void onStop(){
+        super.onStop();
+        //creates new json object
+        JSONObject js = new JSONObject();
+        try {
+            js.put("lat","25");
+            js.put("lng","-36");
+            js.put("rssilvl","2");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        //adds json object to the database through response object
+        String URL = "http://196.47.200.252:8081/api/v2/lwdata";
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST, URL,js,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // response
+                        Log.d("Response", response.toString());
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("Error.Response", error.toString());
+                    }
+                }
+        ) {
+
+        };
+
+        requestQueue.add(jsonObjReq);
+
     }
 
     /**
