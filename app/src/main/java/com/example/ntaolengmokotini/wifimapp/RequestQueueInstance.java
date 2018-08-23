@@ -9,7 +9,7 @@ public class RequestQueueInstance{
     private Context context;
     private RequestQueue requestQueue;
 
-    private RequestQueueInstance(Context c) {
+    public RequestQueueInstance(Context c) {
         context = c;
         requestQueue = getRequestQueue();
     }

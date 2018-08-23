@@ -12,6 +12,8 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -21,17 +23,23 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
 
     private GoogleMap mMap;
+    //private ArrayList<Lwdata> mapData;
+    RequestQueueInstance requestQueueInstance;
+
 
     /**
      Method called when starting the activity & this is the method where most initialization is done.
@@ -44,34 +52,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        requestQueueInstance = new RequestQueueInstance(getApplicationContext());
+        //mapData = new ArrayList<>();
 
     }
     /**
      Requests & obtains values through api
      */
-    /*
+
     public void GET(){
-        String URL = "http://196.47.227.36:8081/api/v2/lwdata/1";
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        String URL = "http://196.42.88.181:8081/api/v2/lwdata";
+        //mapData.clear();
+        RequestQueue rQueue = requestQueueInstance.getInstance(getApplicationContext()).getRequestQueue();
         //constructing the request
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
                 Request.Method.GET,
                 URL,
                 null,
-                new Response.Listener<JSONObject>() {
+                new Response.Listener<JSONArray>() {
                     @Override
-                    public void onResponse(JSONObject response){
-                        try {
-                            lt = response.getString("lat");
-                            lg = response.getString("lng");
-                            Log.d("Response", lt);
+                    public void onResponse(JSONArray response){
+                        GsonBuilder builder = new GsonBuilder();
+                        Gson gson = builder.create();
+                        for(int i = 0; i < response.length(); i++) {
+                            try {
+                                JSONObject jsonObject = response.getJSONObject(i);
+                                Lwdata dataPoint = gson.fromJson(jsonObject.toString(), Lwdata.class);
+                                LatLng marker = new LatLng(dataPoint.getLat(),dataPoint.getLng());
+                                //places marker on the map
+                                mMap.addMarker(new MarkerOptions().position(marker).title("Location - WifiLevel:"+dataPoint.getRssilvl()+"/5"));
 
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                            }
+                            catch(JSONException e) {
+                                Log.e("Rest Response", e.toString());
+                            }
                         }
-
-
 
                     }
                 },
@@ -84,10 +99,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
         );
-        requestQueue.add(jsonObjectRequest);
+        rQueue.add(jsonArrayRequest);
 
     }
-    */
 
     /*
     public void POST(final double lat, final double lng, final int rssilvl){
@@ -138,49 +152,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        // ur for the 4th element in the db
-        String URL = "http://196.24.187.121:8080/api/v2/lwdata/67";
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        //constructing the request
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-                Request.Method.GET,
-                URL,
-                null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response){
-                        try {
-                            String lt = response.getString("lat");
-                            String lg = response.getString("lng");
-                            String rs = response.getString("rssilvl");
-                            LatLng marker = new LatLng(Double.valueOf(lt),Double.valueOf(lg));
-                            //places marker on the map
-                            mMap.addMarker(new MarkerOptions().position(marker).title("Location - WifiLevel:"+rs+"/5"));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLng(marker));
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("Rest Response", error.toString());
-
-                    }
-                }
-
-        );
-        requestQueue.add(jsonObjectRequest);
+        GET();
 
     }
 
     /**
      * Posts the Updated location+wifilevel data
      */
+    /*
     @Override
+
     protected void onStop(){
         super.onStop();
         //creates new json object
@@ -217,7 +198,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         requestQueue.add(jsonObjReq);
 
-    }
+    }*/
 
     /**
      Calculates SignalLevel of Wifi connection using RSSI values.
