@@ -139,7 +139,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         // ur for the 4th element in the db
-        String URL = "http://196.47.200.252:8081/api/v2/lwdata/4";
+        String URL = "http://196.24.187.121:8080/api/v2/lwdata/67";
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         //constructing the request
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
@@ -188,12 +188,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         try {
             js.put("lat","25");
             js.put("lng","-36");
-            js.put("rssilvl","2");
+            js.put("rssilvl","4");
         } catch (JSONException e) {
             e.printStackTrace();
         }
         //adds json object to the database through response object
-        String URL = "http://196.47.200.252:8081/api/v2/lwdata";
+        String URL = "http://196.24.187.121:8080/api/v2/lwdata";
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST, URL,js,
                 new Response.Listener<JSONObject>()
