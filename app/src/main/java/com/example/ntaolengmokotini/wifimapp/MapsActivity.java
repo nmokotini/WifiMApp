@@ -22,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -39,6 +40,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     //private ArrayList<Lwdata> mapData;
     RequestQueueInstance requestQueueInstance;
+    Lwdata post;
 
 
     /**
@@ -53,7 +55,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         requestQueueInstance = new RequestQueueInstance(getApplicationContext());
-        //mapData = new ArrayList<>();
+        post = new Lwdata();
+        post.setLat(-33.957748);
+        post.setLng(18.461242);
+        post.setRssilvl(3);
+
+
 
     }
     /**
@@ -61,7 +68,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
 
     public void GET(){
-        String URL = "http://196.42.88.181:8081/api/v2/lwdata";
+        String URL = "http://196.47.207.158:8081/api/v2/lwdata";
         //mapData.clear();
         RequestQueue rQueue = requestQueueInstance.getInstance(getApplicationContext()).getRequestQueue();
         //constructing the request
@@ -103,79 +110,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    /*
-    public void POST(final double lat, final double lng, final int rssilvl){
-        String URL = "http://196.24.186.131:8080/";
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        StringRequest postRequest = new StringRequest(Request.Method.POST, URL,
-                new Response.Listener<String>()
-                {
-                    @Override
-                    public void onResponse(String response) {
-                        // response
-                        Log.d("Response", response);
-                    }
-                },
-                new Response.ErrorListener()
-                {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("Error.Response", error.toString());
-                    }
-                }
-        ) {
 
-            @Override
-            protected Map<String, String> getParams()
-            {
-                Map<String, String>  params = new HashMap<String, String>();
-                params.put("lat", String.valueOf(lat));
-                params.put("long",String.valueOf(lng ));
-                params.put("rssilvl",String.valueOf(rssilvl));
-                return params;
-            }
-
-        };
-
-        requestQueue.add(postRequest);
-    }
-    */
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        GET();
-
-    }
-
-    /**
-     * Posts the Updated location+wifilevel data
-     */
-    /*
-    @Override
-
-    protected void onStop(){
-        super.onStop();
-        //creates new json object
+    public void POST(){
+        String URL = "http://196.47.207.158:8081/api/v2/lwdata";
         JSONObject js = new JSONObject();
         try {
-            js.put("lat","25");
-            js.put("lng","-36");
-            js.put("rssilvl","4");
+            js.put("lat", -33.957748);
+            js.put("lng", 18.461242);
+            js.put("rssilvl", 3);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        //adds json object to the database through response object
-        String URL = "http://196.24.187.121:8080/api/v2/lwdata";
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+
+        RequestQueue rQueue = requestQueueInstance.getInstance(getApplicationContext()).getRequestQueue();
         JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST, URL,js,
                 new Response.Listener<JSONObject>()
                 {
@@ -194,11 +142,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
         ) {
 
+            @Override
+            protected Map<String, String> getParams()
+            {
+                Map<String, String>  params = new HashMap<>();
+                params.put("lat", String.valueOf(post.getLat()));
+                params.put("long",String.valueOf(post.getLng()));
+                params.put("rssilvl",String.valueOf(post.getRssilvl()));
+                return params;
+            }
+
         };
 
-        requestQueue.add(jsonObjReq);
+        rQueue.add(jsonObjReq);
+    }
 
-    }*/
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setMinZoomPreference(10.0f);
+        mMap.setMaxZoomPreference(20.0f);
+        LatLngBounds UPPER_CAMPUS = new LatLngBounds(new LatLng(-33.960347, 18.458184), new LatLng(-33.954616, 18.461242));
+        mMap.setLatLngBoundsForCameraTarget(UPPER_CAMPUS);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(),17));
+        GET();
+        POST();
+    }
 
     /**
      Calculates SignalLevel of Wifi connection using RSSI values.
