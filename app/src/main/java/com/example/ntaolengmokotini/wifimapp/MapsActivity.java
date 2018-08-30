@@ -224,6 +224,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLngBounds UPPER_CAMPUS = new LatLngBounds(new LatLng(-33.960347, 18.458184), new LatLng(-33.954616, 18.461242));
         mMap.setLatLngBoundsForCameraTarget(UPPER_CAMPUS);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(),17));
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
+        mMap.setMyLocationEnabled(true);
         GET();
 
         Location loc = getCurrentLocation();
@@ -231,7 +233,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         int wifi = getWifiSignalLevel();
         Log.d("Wifi str ", wifi + "");
 
-        //POST();
+        POST(loc.getLatitude(), loc.getLongitude(), getWifiSignalLevel());
+        //GET();
     }
 
 
@@ -282,13 +285,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    public void POST(){
-        String URL = "http://196.47.203.78:8081/api/v2/lwdata";
+    public void POST(double lat, double lng, int rssilvl){
+        String URL = "http://196.42.106.115:8888/api/v2/lwdata";
         JSONObject js = new JSONObject();
         try {
-            js.put("lat", post.getLat());
-            js.put("lng", post.getLng());
-            js.put("rssilvl", post.getRssilvl());
+            js.put("lat", lat);
+            js.put("lng", lng);
+            js.put("rssilvl", rssilvl);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -301,7 +304,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onResponse(JSONObject response) {
                         // response
-                        Log.d("Response", response.toString());
+                        Log.d("POST Response", response.toString());
                     }
                 },
                 new Response.ErrorListener()
