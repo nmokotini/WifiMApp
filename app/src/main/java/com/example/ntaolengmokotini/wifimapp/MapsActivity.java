@@ -51,6 +51,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import android.location.*;
+import android.widget.Toast;
 
 
 import org.json.JSONArray;
@@ -69,6 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static long UPDATE_TIME_INTERVAL = 1000;
     private static long UPDATE_DISTANCE_INTERVAL = 1;
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
+    protected static final int REQUEST_LOCATION_PERMISSION = 1;
     protected LocationManager locationManager;
     private LocationRequest locationRequest;
     private FusedLocationProviderClient mFusedLocationClient;
@@ -88,6 +90,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+
+
         requestQueueInstance = new RequestQueueInstance(getApplicationContext());
         post = new Lwdata();
         /*
@@ -168,6 +174,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         );
     }
 
+    private void getLocation() {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]
+                            {Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION_PERMISSION);
+        } else {
+            Log.d("MES", "getLocation: permissions granted");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_LOCATION_PERMISSION:
+                // If the permission is granted, get the location,
+                // otherwise, show a Toast
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    getLocation();
+                } else {
+                    System.out.println("permission denied");
+                }
+                break;
+        }
+    }
+
 
     private LocationRequest createLocationRequest() {
         LocationRequest locationRequest = new LocationRequest();
@@ -216,7 +250,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setLatLngBoundsForCameraTarget(UPPER_CAMPUS);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(),17));
         GET();
-        //POST();
+        POST();
     }
 
 
@@ -225,7 +259,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
 
     public void GET(){
-        String URL = "http://196.47.203.78:8081/api/v2/lwdata";
+        String URL = "http://196.42.65.123:8081/api/v2/lwdata";
         RequestQueue rQueue = requestQueueInstance.getInstance(getApplicationContext()).getRequestQueue();
         //constructing the request
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -268,7 +302,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     public void POST(){
-        String URL = "http://196.47.203.78:8081/api/v2/lwdata";
+        String URL = "http://196.42.65.123:8081/api/v2/lwdata";
         JSONObject js = new JSONObject();
         try {
             js.put("lat", post.getLat());
