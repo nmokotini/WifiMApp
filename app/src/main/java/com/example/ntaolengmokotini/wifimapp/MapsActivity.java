@@ -7,9 +7,11 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -75,11 +77,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private LocationCallback mLocationCallback;
     private Location lastLocation;
+    private static final String[] LOCATION_PERMS={
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION
+    };
 
 
     /**
      Method called when starting the activity & this is the method where most initialization is done.
      */
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -138,7 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        getCurrentLocation();
+
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_TIME_INTERVAL, UPDATE_DISTANCE_INTERVAL, new LocationListener() {
                     @Override
                     public void onLocationChanged(Location location) {
@@ -177,7 +183,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return locationRequest;
     }
 
-    public void getCurrentLocation() {
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public Location getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -186,13 +193,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            return;
+            requestPermissions(LOCATION_PERMS, 1);
         }
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         if (location != null) {
-            post.setLat(location.getLatitude());
-            post.setLng(location.getLongitude());
-            post.setRssilvl(getWifiSignalLevel());
+            return location;
+        }
+        else{
+            return null;
         }
     }
 
@@ -207,6 +215,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -216,6 +225,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setLatLngBoundsForCameraTarget(UPPER_CAMPUS);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(),17));
         GET();
+
+        Location loc = getCurrentLocation();
+        Log.d("location ", loc.toString());
+        int wifi = getWifiSignalLevel();
+        Log.d("Wifi str ", wifi + "");
+
         //POST();
     }
 
@@ -225,7 +240,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
 
     public void GET(){
-        String URL = "http://196.47.203.78:8081/api/v2/lwdata";
+        String URL = "http://196.42.106.115:8888/api/v2/lwdata";
         RequestQueue rQueue = requestQueueInstance.getInstance(getApplicationContext()).getRequestQueue();
         //constructing the request
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
