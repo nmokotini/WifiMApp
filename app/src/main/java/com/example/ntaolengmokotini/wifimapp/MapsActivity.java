@@ -66,6 +66,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
 
+    private APIServices apiServices = new APIServices();
+    private WifiServices wifiServices = new WifiServices();
+
     RequestQueueInstance requestQueueInstance;
     Lwdata post;
     private static long UPDATE_TIME_INTERVAL = 1000;
@@ -77,8 +80,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private LocationCallback mLocationCallback;
     private Location lastLocation;
-    private static final String[] LOCATION_PERMS={
-            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION
+    private static final String[] REQUIRED_PERMS={
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET
     };
 
 
@@ -193,7 +197,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            requestPermissions(LOCATION_PERMS, 1);
+            requestPermissions(REQUIRED_PERMS, 1);
         }
         Location location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         if (location != null) {
@@ -237,13 +241,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //GET();
     }
 
+    public boolean checkPermissions(){
+
+
+
+    return false;
+    }
+
 
     /**
      Requests & obtains values through api
      */
 
     public void GET(){
-        String URL = "http://196.42.106.115:8888/api/v2/lwdata";
+        String URL = "http://196.24.186.35:8888/api/v2/lwdata";
         RequestQueue rQueue = requestQueueInstance.getInstance(getApplicationContext()).getRequestQueue();
         //constructing the request
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -286,7 +297,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     public void POST(double lat, double lng, int rssilvl){
-        String URL = "http://196.42.106.115:8888/api/v2/lwdata";
+        String URL = "http://196.24.186.35:8888/api/v2/lwdata";
         JSONObject js = new JSONObject();
         try {
             js.put("lat", lat);
