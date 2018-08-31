@@ -2,43 +2,27 @@ package com.example.ntaolengmokotini.wifimapp;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.os.Handler;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -46,9 +30,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -68,19 +49,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private APIServices apiServices = new APIServices();
     private WifiServices wifiServices = new WifiServices();
+    protected LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+    Handler handler = new Handler();
 
     RequestQueueInstance requestQueueInstance;
     Lwdata post;
     private static long UPDATE_TIME_INTERVAL = 1000;
     private static long UPDATE_DISTANCE_INTERVAL = 1;
     protected static final int REQUEST_CHECK_SETTINGS = 0x1;
-    protected LocationManager locationManager;
     private LocationRequest locationRequest;
     private FusedLocationProviderClient mFusedLocationClient;
     private GoogleApiClient mGoogleApiClient;
     private LocationCallback mLocationCallback;
     private Location lastLocation;
-    private static final String[] REQUIRED_PERMS={
+    private static final String[] REQUIRED_PERMS = {
             Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET
     };
@@ -178,6 +160,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         );
     }
 
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(startLocationServices);
+    }
+
 
     private LocationRequest createLocationRequest() {
         LocationRequest locationRequest = new LocationRequest();
@@ -202,13 +189,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Location location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         if (location != null) {
             return location;
-        }
-        else{
+        } else {
             return null;
         }
     }
-
-
 
 
     /**
@@ -227,10 +211,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMaxZoomPreference(20.0f);
         LatLngBounds UPPER_CAMPUS = new LatLngBounds(new LatLng(-33.960347, 18.458184), new LatLng(-33.954616, 18.461242));
         mMap.setLatLngBoundsForCameraTarget(UPPER_CAMPUS);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(),17));
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
-        mMap.setMyLocationEnabled(true);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(), 17));
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            mMap.setMyLocationEnabled(true);
+        }
+
         GET();
+        handler.post(startLocationServices);
 
         Location loc = getCurrentLocation();
         Log.d("location ", loc.toString());
@@ -243,9 +232,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public boolean checkPermissions(){
 
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED){
 
+            return true;
+        }
+        else{
+            return false;
+        }
 
-    return false;
     }
 
 
@@ -357,5 +355,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return wifiSignalLevel;
     }
 
+
+
+    // runnable method to send the data periodically
+    private final Runnable startLocationServices = new Runnable(){
+
+        public void run(){
+            try {
+
+                Location myLocation = MyLocationServices.getCurrentLocation(getApplicationContext(), locationManager); //maybe this wont work with context issues
+
+                handler.postDelayed(this, 1000);//re run the method every 1000 seconds
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
 }

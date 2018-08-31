@@ -25,13 +25,14 @@ import java.util.Map;
 
 public class APIServices {
 
-
+    private final static String BASE_URL_POST="http://196.24.186.35:8888/api/v2/lwdata";
+    private final static String BASE_URL_GET="http://196.24.186.35:8888/api/v2/lwdata";
 
     public void getAndUpdateMap(Context context, final GoogleMap mMap){
 
         RequestQueueInstance requestQueueInstance = new RequestQueueInstance(context);
 
-        String URL = "http://196.24.186.35:8888/api/v2/lwdata";
+        String URL = BASE_URL_GET;
         RequestQueue rQueue = requestQueueInstance.getInstance(context).getRequestQueue();
         //constructing the request
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -76,7 +77,7 @@ public class APIServices {
 
         RequestQueueInstance requestQueueInstance = new RequestQueueInstance(context);
 
-        String URL = "http://196.24.186.35:8888/api/v2/lwdata";
+        String URL = BASE_URL_POST;
         JSONObject js = new JSONObject();
         try {
             js.put("lat", lat);
