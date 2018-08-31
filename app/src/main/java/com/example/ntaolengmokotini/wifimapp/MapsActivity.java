@@ -2,6 +2,7 @@ package com.example.ntaolengmokotini.wifimapp;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -50,7 +51,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private APIServices apiServices = new APIServices();
     private WifiServices wifiServices = new WifiServices();
     protected LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-    Handler handler = new Handler();
 
     RequestQueueInstance requestQueueInstance;
     Lwdata post;
@@ -162,7 +162,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     protected void onDestroy() {
         super.onDestroy();
-        handler.removeCallbacks(startLocationServices);
     }
 
 
@@ -206,6 +205,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+
+        //start location services
+        startService(new Intent(getApplicationContext(), LocationService.class));
+
+
         mMap = googleMap;
         mMap.setMinZoomPreference(10.0f);
         mMap.setMaxZoomPreference(20.0f);
@@ -219,7 +224,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         GET();
-        handler.post(startLocationServices);
 
         Location loc = getCurrentLocation();
         Log.d("location ", loc.toString());
@@ -357,20 +361,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-    // runnable method to send the data periodically
-    private final Runnable startLocationServices = new Runnable(){
-
-        public void run(){
-            try {
-
-                Location myLocation = MyLocationServices.getCurrentLocation(getApplicationContext(), locationManager); //maybe this wont work with context issues
-
-                handler.postDelayed(this, 1000);//re run the method every 1000 seconds
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    };
 
 }

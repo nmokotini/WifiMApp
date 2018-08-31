@@ -6,7 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -27,7 +27,7 @@ public class MyLocationServices implements Runnable{
     Handler handler = new Handler();
 
     Context context;
-    LocationM
+    LocationManager locationManager;
 
 
     public static Location getCurrentLocation(Context context, LocationManager locationManager) {
@@ -51,7 +51,7 @@ public class MyLocationServices implements Runnable{
     public void run() {
         try {
 
-            Location myLocation = MyLocationServices.getCurrentLocation(getApplicationContext(), locationManager); //maybe this wont work with context issues
+            //Location myLocation = MyLocationServices.getCurrentLocation(getApplicationContext(), locationManager); //maybe this wont work with context issues
 
             handler.postDelayed(this, 1000);//re run the method every 1000 seconds
         }
