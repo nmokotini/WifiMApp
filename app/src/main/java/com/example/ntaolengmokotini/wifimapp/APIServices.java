@@ -30,8 +30,8 @@ import java.util.Map;
 
 public class APIServices {
 
-    private final static String BASE_URL_POST="http://196.47.193.143:8888/api/v2/lwdata";
-    private final static String BASE_URL_GET="http://196.47.193.143:8888/api/v2/lwdata";
+    private final static String BASE_URL_POST="http://192.168.0.103:8765/api/v2/lwdata";
+    private final static String BASE_URL_GET="http://192.168.0.103:8765/api/v2/lwdata";
 
     HeatmapTileProvider mProvider;
 
@@ -61,7 +61,7 @@ public class APIServices {
                                 WeightedLatLng weightedLatLng = new WeightedLatLng(marker, dataPoint.getRssilvl()); //maybe multiply to get higher difference
                                 aggData.add(weightedLatLng);
                                 //places marker on the map
-                                mMap.addMarker(new MarkerOptions().position(marker).title("Location - WifiLevel:"+dataPoint.getRssilvl()+"/5"));
+                                //mMap.addMarker(new MarkerOptions().position(marker).title("Location - WifiLevel:"+dataPoint.getRssilvl()+"/5"));
 
                             }
                             catch(JSONException e) {

@@ -174,25 +174,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return locationRequest;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public Location getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            requestPermissions(REQUIRED_PERMS, 1);
-        }
-        Location location = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-        if (location != null) {
-            return location;
-        } else {
-            return null;
-        }
-    }
 
 
     /**
@@ -248,21 +229,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-
-    /**
-     Calculates SignalLevel of Wifi connection using RSSI values.
-     */
-    public int getWifiSignalLevel(){
-        //gets access to WIFI service through permissions
-        WifiManager wifiManager = (WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        //gets information about the wifi connection and stores it in a WifiInfo object
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        //sets RSSI levels, out of which the SignalLevel will be calculated
-        final int rssiLevels = 5;
-        //calulates Signal level
-        int wifiSignalLevel = WifiManager.calculateSignalLevel(wifiInfo.getRssi(), rssiLevels);
-        return wifiSignalLevel;
-    }
 
 
 

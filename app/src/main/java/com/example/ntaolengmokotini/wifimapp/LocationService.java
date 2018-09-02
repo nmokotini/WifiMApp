@@ -23,30 +23,65 @@ import com.google.android.gms.location.LocationRequest;
 
 public class LocationService extends Service implements android.location.LocationListener {
 
-
     protected LocationManager locationManager;
     protected APIServices apiServices = new APIServices();
     protected WifiServices wifiServices = new WifiServices();
     protected android.location.LocationListener locationListener;
     protected Handler handler = new Handler();
+    private boolean inLocationBound = false;
+    private static final double UPPER_CAMPUS_LAT_1 = -33.960347;
+    private static final double UPPER_CAMPUS_LNG_1 = 18.458184;
+    private static final double UPPER_CAMPUS_LAT_2 = -33.954616;
+    private static final double UPPER_CAMPUS_LNG_2 = 18.461242;
 
-
-//    public LocationService(Context mContext){
-//        context = mContext;
-//    }
-
-    @Override
+        @Override
     public void onCreate(){
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Log.d("Service", "started");
 
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
         }
+
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 2, this);
 
+    }
+
+    private boolean locBoundCheck(Location loc, Double lat1, Double lng1,Double lat2,Double lng2){
+
+        inLocationBound = false;
+
+        Double wlat1;
+        Double wlat2;
+        Double wlng1;
+        Double wlng2;
+
+        if(lat1 < lat2){
+            wlat1 = lat1;
+            wlat2 = lat2;
+        }
+        else{
+            wlat1 = lat2;
+            wlat2 = lat1;
+        }
+
+        if(lng1 < lng2){
+            wlng1 = lng1;
+            wlng2 = lng2;
+        }
+        else{
+            wlng1 = lng2;
+            wlng2 = lng1;
+        }
+        //check whether the location is within the bounds and set boolean
+        if(Math.abs(loc.getLatitude()) <= wlat1 && wlat2 <= Math.abs(loc.getLatitude()) && Math.abs(loc.getLongitude()) <= wlng1 && Math.abs(loc.getLongitude()) <= wlng2){
+            inLocationBound = true;
+        }
+
+        return inLocationBound;
     }
 
     @Nullable
@@ -56,18 +91,27 @@ public class LocationService extends Service implements android.location.Locatio
     }
 
 
+ // CHECK THIS FOR BUGSS
+
+
     @Override
     public void onLocationChanged(Location location) {
 
         Log.d("Location changed","true");
+
         if(wifiServices.getWifiSignalLevel(getApplicationContext(), 5) != 0) {
+
             Log.d("Wifi connected", "true");
+
             if(location != null){
-                apiServices.post(getApplicationContext(), location.getLatitude(), location.getLongitude(), wifiServices.getWifiSignalLevel(getApplicationContext(), 5));
+
+                if(locBoundCheck(location, UPPER_CAMPUS_LAT_1, UPPER_CAMPUS_LNG_1, UPPER_CAMPUS_LAT_2, UPPER_CAMPUS_LNG_2)){
+
+                    apiServices.post(getApplicationContext(), location.getLatitude(), location.getLongitude(), wifiServices.getWifiSignalLevel(getApplicationContext(), 5));
+
+                }
             }
-
         }
-
     }
 
 
