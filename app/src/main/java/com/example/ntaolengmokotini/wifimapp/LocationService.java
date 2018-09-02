@@ -29,10 +29,6 @@ public class LocationService extends Service implements android.location.Locatio
     protected WifiServices wifiServices = new WifiServices();
     protected android.location.LocationListener locationListener;
     protected Context context;
-    TextView txtLat;
-    String lat;
-    String provider;
-    protected boolean gps_enabled, network_enabled;
     protected Handler handler = new Handler();
 
 
@@ -62,9 +58,12 @@ public class LocationService extends Service implements android.location.Locatio
     @Override
     public void onLocationChanged(Location location) {
 
+        Log.d("Location changed","true");
         if(wifiServices.getWifiSignalLevel(context, 5) != 0) {
-
-            apiServices.post(context, location.getLatitude(), location.getLongitude(), wifiServices.getWifiSignalLevel(context, 5));
+            Log.d("Wifi connected", "true");
+            if(location != null){
+                apiServices.post(context, location.getLatitude(), location.getLongitude(), wifiServices.getWifiSignalLevel(context, 5));
+            }
 
         }
 
