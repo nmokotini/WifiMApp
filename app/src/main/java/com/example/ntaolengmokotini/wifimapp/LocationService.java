@@ -28,23 +28,24 @@ public class LocationService extends Service implements android.location.Locatio
     protected APIServices apiServices = new APIServices();
     protected WifiServices wifiServices = new WifiServices();
     protected android.location.LocationListener locationListener;
-    protected Context context;
     protected Handler handler = new Handler();
 
 
-    public LocationService(Context mContext){
-        context = mContext;
-    }
+//    public LocationService(Context mContext){
+//        context = mContext;
+//    }
 
     @Override
     public void onCreate(){
-        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Log.d("Service", "started");
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 2, this);
 
     }
 
@@ -59,10 +60,10 @@ public class LocationService extends Service implements android.location.Locatio
     public void onLocationChanged(Location location) {
 
         Log.d("Location changed","true");
-        if(wifiServices.getWifiSignalLevel(context, 5) != 0) {
+        if(wifiServices.getWifiSignalLevel(getApplicationContext(), 5) != 0) {
             Log.d("Wifi connected", "true");
             if(location != null){
-                apiServices.post(context, location.getLatitude(), location.getLongitude(), wifiServices.getWifiSignalLevel(context, 5));
+                apiServices.post(getApplicationContext(), location.getLatitude(), location.getLongitude(), wifiServices.getWifiSignalLevel(getApplicationContext(), 5));
             }
 
         }

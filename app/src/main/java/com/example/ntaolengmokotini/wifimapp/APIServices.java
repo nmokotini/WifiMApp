@@ -25,8 +25,8 @@ import java.util.Map;
 
 public class APIServices {
 
-    private final static String BASE_URL_POST="http://196.24.186.35:8888/api/v2/lwdata";
-    private final static String BASE_URL_GET="http://196.24.186.35:8888/api/v2/lwdata";
+    private final static String BASE_URL_POST="http://196.47.193.143:8888/api/v2/lwdata";
+    private final static String BASE_URL_GET="http://196.47.193.143:8888/api/v2/lwdata";
 
     public void getAndUpdateMap(Context context, final GoogleMap mMap){
 
