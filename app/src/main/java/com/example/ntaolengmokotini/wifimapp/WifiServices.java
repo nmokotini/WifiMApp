@@ -19,4 +19,20 @@ public class WifiServices {
         return wifiSignalLevel;
     }
 
+    public boolean checkWifiValidity(Context context){
+        //gets access to WIFI service through permissions
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+
+        //gets information about the wifi connection and stores it in a WifiInfo object
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+
+        if(wifiInfo.getSSID().toUpperCase().equals("EDUROAM")){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+
 }

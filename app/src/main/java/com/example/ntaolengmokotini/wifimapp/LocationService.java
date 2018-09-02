@@ -99,7 +99,7 @@ public class LocationService extends Service implements android.location.Locatio
 
         Log.d("Location changed","true");
 
-        if(wifiServices.getWifiSignalLevel(getApplicationContext(), 5) != 0) {
+        if(wifiServices.checkWifiValidity(getApplicationContext())) {
 
             Log.d("Wifi connected", "true");
 

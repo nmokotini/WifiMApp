@@ -24,9 +24,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class APIServices {
 
@@ -60,8 +57,6 @@ public class APIServices {
                                 LatLng marker = new LatLng(dataPoint.getLat(),dataPoint.getLng());
                                 WeightedLatLng weightedLatLng = new WeightedLatLng(marker, dataPoint.getRssilvl()); //maybe multiply to get higher difference
                                 aggData.add(weightedLatLng);
-                                //places marker on the map
-                                //mMap.addMarker(new MarkerOptions().position(marker).title("Location - WifiLevel:"+dataPoint.getRssilvl()+"/5"));
 
                             }
                             catch(JSONException e) {

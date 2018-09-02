@@ -1,6 +1,7 @@
 package com.example.ntaolengmokotini.wifimapp;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -110,7 +111,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -125,10 +125,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         //start location services
-        Intent intent = new Intent(this, LocationService.class);
-        startService(intent);
-
-
         mMap = googleMap;
         mMap.setMinZoomPreference(10.0f);
         mMap.setMaxZoomPreference(20.0f);
@@ -136,13 +132,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setLatLngBoundsForCameraTarget(UPPER_CAMPUS);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(), 17));
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        requestPermissions(REQUIRED_PERMS, 1);
+    }
 
+    @TargetApi(Build.VERSION_CODES.M)
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+
+        if (requestCode == 1) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(REQUIRED_PERMS, 1);
+                return;
+            }
+            mMap.setMyLocationEnabled(true);
+            apiServices.getAndUpdateMap(getApplicationContext(), mMap);
+            Intent intent = new Intent(this, LocationService.class);
+            startService(intent);
         }
-        mMap.setMyLocationEnabled(true);
-
-        apiServices.getAndUpdateMap(getApplicationContext(), mMap);
     }
 
     public boolean checkPermissions(){
