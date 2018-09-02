@@ -114,6 +114,11 @@ public class LocationService extends Service implements android.location.Locatio
         }
     }
 
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
 
     @Override
     public void onProviderEnabled(String provider) {
@@ -123,10 +128,5 @@ public class LocationService extends Service implements android.location.Locatio
     @Override
     public void onProviderDisabled(String s) {
         // TODO: add notification to tell user that GPS Services are disabled.
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-        Log.d("Latitude","status");
     }
 }

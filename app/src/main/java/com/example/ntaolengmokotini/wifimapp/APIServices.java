@@ -69,6 +69,8 @@ public class APIServices {
                             }
 
                         mProvider = new HeatmapTileProvider.Builder().weightedData(aggData).build();
+                            //add tile overlay options here
+
                         mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
                         }
 

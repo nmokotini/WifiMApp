@@ -4,22 +4,13 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -31,18 +22,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import android.location.*;
-
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.*;
-
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -53,12 +34,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected LocationManager locationManager;
 
     RequestQueueInstance requestQueueInstance;
-    Lwdata post;
-    private static long UPDATE_TIME_INTERVAL = 1000;
-    private static long UPDATE_DISTANCE_INTERVAL = 1;
-    protected static final int REQUEST_CHECK_SETTINGS = 0x1;
-    private LocationRequest locationRequest;
-    private FusedLocationProviderClient mFusedLocationClient;
     private GoogleApiClient mGoogleApiClient;
     private LocationCallback mLocationCallback;
     private Location lastLocation;
@@ -75,13 +50,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+
         mapFragment.getMapAsync(this);
         requestQueueInstance = new RequestQueueInstance(getApplicationContext());
-        post = new Lwdata();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         /*
         createLocationRequest();
@@ -118,47 +94,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         };*/
-
-
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_TIME_INTERVAL, UPDATE_DISTANCE_INTERVAL, new LocationListener() {
-                    @Override
-                    public void onLocationChanged(Location location) {
-                        post.setLat(location.getLatitude());
-                        post.setLng(location.getLongitude());
-                        post.setRssilvl(getWifiSignalLevel());
-                    }
-
-                    @Override
-                    public void onStatusChanged(String provider, int status, Bundle extras) {
-                        System.out.println("Status Change");
-                    }
-
-                    @Override
-                    public void onProviderEnabled(String provider) {
-
-                        System.out.println("GPS On");
-
-                    }
-
-                    @Override
-                    public void onProviderDisabled(String provider) {
-                        System.out.println("GPS Off");
-
-                    }
-                }
-        );
     }
 
     protected void onDestroy() {
@@ -208,9 +143,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);
 
         apiServices.getAndUpdateMap(getApplicationContext(), mMap);
-
-        //POST(loc.getLatitude(), loc.getLongitude(), getWifiSignalLevel());
-        //GET();
     }
 
     public boolean checkPermissions(){
