@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">WifiMApp</string>
     <string name="title_activity_maps">Map</string>
+
+    <string-array name="times_array">
+        <item>1 Hour</item>
+        <item>12 Hours</item>
+        <item>1 Day</item>
+        <item>3 Days</item>
+        <item>1 Week</item>
+        <item>All Time</item>
+    </string-array>
+
 </resources>

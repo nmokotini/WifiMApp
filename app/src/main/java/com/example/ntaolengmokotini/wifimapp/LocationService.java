@@ -5,6 +5,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -36,6 +37,18 @@ public class LocationService extends Service implements android.location.Locatio
 
         @Override
     public void onCreate(){
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_FINE);
+            criteria.setPowerRequirement(Criteria.POWER_HIGH);
+            criteria.setAltitudeRequired(false);
+            criteria.setSpeedRequired(false);
+            criteria.setCostAllowed(true);
+            criteria.setBearingRequired(false);
+            criteria.setHorizontalAccuracy(Criteria.ACCURACY_HIGH);
+            criteria.setVerticalAccuracy(Criteria.ACCURACY_HIGH);
+
+
+
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Log.d("Service", "started");
@@ -45,8 +58,7 @@ public class LocationService extends Service implements android.location.Locatio
 
             return;
         }
-
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 2, this);
+        locationManager.requestLocationUpdates(500, 1, criteria, this, null);
 
     }
 
@@ -105,11 +117,15 @@ public class LocationService extends Service implements android.location.Locatio
 
             if(location != null){
 
-                if(locBoundCheck(location, UPPER_CAMPUS_LAT_1, UPPER_CAMPUS_LNG_1, UPPER_CAMPUS_LAT_2, UPPER_CAMPUS_LNG_2)){
+                Log.d("Location is not null", "true");
+
+                //if(locBoundCheck(location, UPPER_CAMPUS_LAT_1, UPPER_CAMPUS_LNG_1, UPPER_CAMPUS_LAT_2, UPPER_CAMPUS_LNG_2)){
+
+                    //Log.d("Upper campus location", "true");
 
                     apiServices.post(getApplicationContext(), location.getLatitude(), location.getLongitude(), wifiServices.getWifiSignalLevel(getApplicationContext(), 5));
 
-                }
+                //}
             }
         }
     }

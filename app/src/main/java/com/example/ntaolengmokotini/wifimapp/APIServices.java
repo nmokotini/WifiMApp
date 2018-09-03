@@ -13,6 +13,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,12 +32,23 @@ public class APIServices {
     private final static String BASE_URL_GET="http://192.168.0.103:8765/api/v2/lwdata";
 
     HeatmapTileProvider mProvider;
+    TileOverlay mOverlay;
 
-    public void getAndUpdateMap(Context context, final GoogleMap mMap){
+    public void getAndUpdateMap(Context context, final GoogleMap mMap, String type, int age){
 
         RequestQueueInstance requestQueueInstance = new RequestQueueInstance(context);
-
         String URL = BASE_URL_GET;
+
+        if(type.toUpperCase().equals("DAYS")){
+            URL = BASE_URL_GET+"/age/days/"+age;
+        }
+        else if(type.toUpperCase().equals("HOURS")){
+            URL = BASE_URL_GET+"/age/hours/"+age;
+        }
+        else if(type.toUpperCase().equals("ALLTIME")){
+            URL = BASE_URL_GET+"/age/alltime/"+age;
+        }
+
         RequestQueue rQueue = requestQueueInstance.getInstance(context).getRequestQueue();
         //constructing the request
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -63,12 +75,16 @@ public class APIServices {
                                 Log.e("Rest Response", e.toString());
                             }
 
-                        mProvider = new HeatmapTileProvider.Builder().weightedData(aggData).build();
+                        if(mProvider == null && mOverlay == null){
+                            mProvider = new HeatmapTileProvider.Builder().weightedData(aggData).build();
                             //add tile overlay options here
-
-                        mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+                            mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
                         }
-
+                        else {
+                            mProvider.setWeightedData(aggData);
+                            mOverlay.clearTileCache();
+                        }
+                        }
                     }
                 },
                 new Response.ErrorListener() {

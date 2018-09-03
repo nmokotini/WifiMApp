@@ -18,6 +18,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -25,10 +26,16 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.location.*;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener {
 
     private GoogleMap mMap;
+
+    private boolean firstCall = true;
 
     private APIServices apiServices = new APIServices();
     private WifiServices wifiServices = new WifiServices();
@@ -51,6 +58,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestQueueInstance = new RequestQueueInstance(getApplicationContext());
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -58,8 +67,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(this);
-        requestQueueInstance = new RequestQueueInstance(getApplicationContext());
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        Spinner mySpinner = (Spinner) findViewById(R.id.times_spinner);
+        ArrayAdapter<CharSequence> myAdapter = ArrayAdapter.createFromResource(this, R.array.times_array, android.R.layout.simple_spinner_item);
+        myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mySpinner.setAdapter(myAdapter);
+        mySpinner.setOnItemSelectedListener(this);
+        mySpinner.setZ(2);
+
+
         /*
         createLocationRequest();
         LocationSettingsRequest settingsRequest = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest).build();
@@ -146,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return;
             }
             mMap.setMyLocationEnabled(true);
-            apiServices.getAndUpdateMap(getApplicationContext(), mMap);
+            apiServices.getAndUpdateMap(getApplicationContext(), mMap, "alltime", 1);
             Intent intent = new Intent(this, LocationService.class);
             startService(intent);
         }
@@ -169,7 +185,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int pos, long l) {
 
+        String item = parent.getItemAtPosition(pos).toString();
+        if(firstCall){
+            firstCall = false;
+        }
+        else{
+            if(item.equals("1 Hour")){
+                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "hours", 1);
+            }
+            else if(item.equals("12 Hours")){
+                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "hours", 12);
+            }
+            else if(item.equals("1 Day")){
+                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "days", 1);
+            }
+            else if(item.equals("3 Days")){
+                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "days", 3);
+            }
+            else if(item.equals("1 Week")){
+                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "days", 7);
+            }
+            else if(item.equals("All Time")) {
+                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "alltime", 1);
+            }
+            else{
+                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "alltime", 1);
+            }
+        }
 
+    }
 
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
+    }
 }

@@ -25,8 +25,9 @@ public class WifiServices {
 
         //gets information about the wifi connection and stores it in a WifiInfo object
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        String ssid = wifiInfo.getSSID().toString();
 
-        if(wifiInfo.getSSID().toUpperCase().equals("EDUROAM")){
+        if(ssid.replace("\"", "").equals("eduroam")){
             return true;
         }
         else{
