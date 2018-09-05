@@ -1,6 +1,7 @@
 package com.example.ntaolengmokotini.wifimapp;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.icu.text.Collator;
 import android.util.Log;
 
@@ -17,6 +18,7 @@ import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
@@ -30,6 +32,21 @@ public class APIServices {
 
     private final static String BASE_URL_POST="http://192.168.0.103:8765/api/v2/lwdata";
     private final static String BASE_URL_GET="http://192.168.0.103:8765/api/v2/lwdata";
+
+    int[] colors = {
+            Color.rgb(255, 0, 0), // red
+            Color.rgb(102, 225, 0), // green
+
+    };
+
+    float[] startPoints = {
+            0.2f, 1f
+    };
+
+    Gradient gradient = new Gradient(colors, startPoints);
+
+    double oppacity = 0.3;
+    int radius = 50;
 
     HeatmapTileProvider mProvider;
     TileOverlay mOverlay;
@@ -49,6 +66,7 @@ public class APIServices {
             URL = BASE_URL_GET+"/age/alltime/"+age;
         }
 
+        Log.d("URL", URL);
         RequestQueue rQueue = requestQueueInstance.getInstance(context).getRequestQueue();
         //constructing the request
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(
@@ -75,8 +93,10 @@ public class APIServices {
                                 Log.e("Rest Response", e.toString());
                             }
 
+
+
                         if(mProvider == null && mOverlay == null){
-                            mProvider = new HeatmapTileProvider.Builder().weightedData(aggData).build();
+                            mProvider = new HeatmapTileProvider.Builder().weightedData(aggData).gradient(gradient).radius(radius).opacity(oppacity).build();
                             //add tile overlay options here
                             mOverlay = mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
                         }

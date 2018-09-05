@@ -144,9 +144,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         mMap.setMinZoomPreference(10.0f);
         mMap.setMaxZoomPreference(20.0f);
-        LatLngBounds UPPER_CAMPUS = new LatLngBounds(new LatLng(-33.960347, 18.458184), new LatLng(-33.954616, 18.461242));
+        LatLngBounds UPPER_CAMPUS = new LatLngBounds(new LatLng(-33.960900, 18.460952), new LatLng(-33.954600, 18.462969));
         mMap.setLatLngBoundsForCameraTarget(UPPER_CAMPUS);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(), 17));
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
         requestPermissions(REQUIRED_PERMS, 1);
     }

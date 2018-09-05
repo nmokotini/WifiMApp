@@ -30,10 +30,10 @@ public class LocationService extends Service implements android.location.Locatio
     protected android.location.LocationListener locationListener;
     protected Handler handler = new Handler();
     private boolean inLocationBound = false;
-    private static final double UPPER_CAMPUS_LAT_1 = -33.960347;
-    private static final double UPPER_CAMPUS_LNG_1 = 18.458184;
-    private static final double UPPER_CAMPUS_LAT_2 = -33.954616;
-    private static final double UPPER_CAMPUS_LNG_2 = 18.461242;
+    private static final double UPPER_CAMPUS_LAT_1 = -33.960900;
+    private static final double UPPER_CAMPUS_LNG_1 = 18.460952;
+    private static final double UPPER_CAMPUS_LAT_2 = -33.954600;
+    private static final double UPPER_CAMPUS_LNG_2 = 18.462969;
 
         @Override
     public void onCreate(){
