@@ -10,127 +10,88 @@ import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
-
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
-
 import android.location.*;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+
+/*
+    This is the main activity of the application. As such
+    it is created upon the starting of the application.
+    It extends FragmentActivity to allow the use of a Google Map within the application.
+    It implements OnMapReadyCallback to cause the calling of an overridden method once the
+    map has been successfully loaded and is ready to use. It also implements OnItemSelectedListener
+    which allows the onItemSelectedListener method to be overridden when a Data Filter Spinner item
+    is selected.
+*/
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, AdapterView.OnItemSelectedListener {
 
-    private GoogleMap mMap;
+    private GoogleMap mMap; //The GoogleMap object which will be set to the Map object once it is created
 
-    private boolean firstCall = true;
+    private boolean firstCall = true; //A boolean to manage the first call of the
 
-    private APIServices apiServices = new APIServices();
-    private WifiServices wifiServices = new WifiServices();
-    protected LocationManager locationManager;
+    private APIServices apiServices;  //An object which provides the map activity with the required API Services (such as HTTP GETs and POSTs)
 
-    RequestQueueInstance requestQueueInstance;
-    private GoogleApiClient mGoogleApiClient;
-    private LocationCallback mLocationCallback;
-    private Location lastLocation;
-    private static final String[] REQUIRED_PERMS = {
+    private static final String[] REQUIRED_PERMS = { //A string array containing the required permissions for the application
             Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.INTERNET
     };
 
+    LatLngBounds UPPER_CAMPUS = new LatLngBounds(new LatLng(-33.960900, 18.460952), new LatLng(-33.954600, 18.462969)); //The map bounds for upper campus
 
-    /**
+
+    /*
      Method called when starting the activity & this is the method where most initialization is done.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        requestQueueInstance = new RequestQueueInstance(getApplicationContext());
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        apiServices = new APIServices(getApplicationContext());
+        super.onCreate(savedInstanceState); //Super method call to allow the application to be resumed (if it has been minimized)
 
-        setContentView(R.layout.activity_maps);
+        setContentView(R.layout.activity_maps); //setting the layout (user interface layout XML) for the activity
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
-        mapFragment.getMapAsync(this);
+        mapFragment.getMapAsync(this); //getting the map asynchronously and setting this class as the listener
 
+
+        /*
+        The below code initialises the Age Filter Spinner. It sets the values of the spinner
+        defined in the strings.xml document. It sets the spinner's listener to this class as well
+        as defining its Z positioning, so that it is drawn infront of the map. It also sets
+        the default selection to "All Time"
+         */
         Spinner mySpinner = (Spinner) findViewById(R.id.times_spinner);
         ArrayAdapter<CharSequence> myAdapter = ArrayAdapter.createFromResource(this, R.array.times_array, android.R.layout.simple_spinner_item);
         myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mySpinner.setAdapter(myAdapter);
         mySpinner.setOnItemSelectedListener(this);
         mySpinner.setZ(2);
-
-
-        /*
-        createLocationRequest();
-        LocationSettingsRequest settingsRequest = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest).build();
-        SettingsClient client = LocationServices.getSettingsClient(this);
-        Task<LocationSettingsResponse> task = client.checkLocationSettings(settingsRequest);
-        task.addOnFailureListener(this, new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                int statusCode = ((ApiException) e).getStatusCode();
-                if (statusCode == LocationSettingsStatusCodes.RESOLUTION_REQUIRED) {
-                    // Location settings are not satisfied, but this can
-                    // be fixed by showing the user a dialog
-                    try {
-                        // Show the dialog by calling
-                        // startResolutionForResult(), and check the
-                        // result in onActivityResult()
-                        ResolvableApiException resolvable = (ResolvableApiException) e;
-                        resolvable.startResolutionForResult(MapsActivity.this, REQUEST_CHECK_SETTINGS);
-                    } catch (IntentSender.SendIntentException sendEx) {
-                        // Ignore the error
-                    }
-                }
-            }
-        });
-
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                for (Location location : locationResult.getLocations()) {
-                    post.setLat(location.getLatitude());
-                    post.setLng(location.getLongitude());
-
-                }
-            }
-        };*/
+        mySpinner.setSelection(5);
     }
 
+    //The onDestroy method which is called when the app is closed.
     protected void onDestroy() {
         super.onDestroy();
     }
 
 
-    private LocationRequest createLocationRequest() {
-        LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(10000);
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        return locationRequest;
-    }
-
-
-    /**
+    /*
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * This is where map settings are initialised. In this case,
      * If Google Play services is not installed on the device, the user will be prompted to install
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
@@ -138,13 +99,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
-
-        //start location services
+        /*
+        The code below initialises some of the map settings. It sets the zoom capabilities as
+        well as the bounds the map can have. It also moves the map to the center of campus and
+        defines the map type as Hybrid (Topological data overlaid upon a Satellite map).
+        The permissions required to run the App are also requested at this point, using the pre-defined
+        REQUIRED_PERMS.
+        */
         mMap = googleMap;
         mMap.setMinZoomPreference(10.0f);
         mMap.setMaxZoomPreference(20.0f);
-        LatLngBounds UPPER_CAMPUS = new LatLngBounds(new LatLng(-33.960900, 18.460952), new LatLng(-33.954600, 18.462969));
         mMap.setLatLngBoundsForCameraTarget(UPPER_CAMPUS);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(UPPER_CAMPUS.getCenter(), 17));
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
@@ -152,23 +116,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         requestPermissions(REQUIRED_PERMS, 1);
     }
 
+    /*
+    This method is called after a requestPermission method has run, and requested
+    permissions from the user. It contains information about whether, and which, permissions have been
+    granted. This method then makes calls only callable once the permissions have been granted.
+    */
     @TargetApi(Build.VERSION_CODES.M)
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
+        //Checks if the permissions required have been granted, if not request them.
         if (requestCode == 1) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(REQUIRED_PERMS, 1);
                 return;
             }
+            /*
+            The code below starts to show the users location, and the relevant UI changes.
+            It also calls an API Service method to get data to populate the heatmap, and
+            finally starts the Location Service.
+            */
+
             mMap.setMyLocationEnabled(true);
-            apiServices.getAndUpdateMap(getApplicationContext(), mMap, "alltime", 1);
+            apiServices.getAndUpdateMap(mMap, "alltime", 1);
             Intent intent = new Intent(this, LocationService.class);
             startService(intent);
         }
     }
 
+    /*
+    This method is used to check whether the user has granted the required permissions.
+    It returns a boolean true if they have been granted and false if they have not.
+    */
     public boolean checkPermissions(){
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -185,7 +165,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-
+    /*
+    Method called when a selection is made on the Age Filter Spinner, parsing the position
+    of the selected option. The method determines which option has been selected and calls
+    the relevant API Get method. The method defaults to the All Time option if the
+    selected value cannot be retrieved.
+    */
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long l) {
 
@@ -195,32 +180,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         else{
             if(item.equals("1 Hour")){
-                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "hours", 1);
+                apiServices.getAndUpdateMap(mMap, "hours", 1);
             }
             else if(item.equals("12 Hours")){
-                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "hours", 12);
+                apiServices.getAndUpdateMap(mMap, "hours", 12);
             }
             else if(item.equals("1 Day")){
-                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "days", 1);
+                apiServices.getAndUpdateMap(mMap, "days", 1);
             }
             else if(item.equals("3 Days")){
-                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "days", 3);
+                apiServices.getAndUpdateMap(mMap, "days", 3);
             }
             else if(item.equals("1 Week")){
-                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "days", 7);
+                apiServices.getAndUpdateMap(mMap, "days", 7);
             }
             else if(item.equals("All Time")) {
-                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "alltime", 1);
+                apiServices.getAndUpdateMap(mMap, "alltime", 1);
             }
             else{
-                apiServices.getAndUpdateMap(getApplicationContext(), mMap, "alltime", 1);
+                apiServices.getAndUpdateMap(mMap, "alltime", 1);
             }
         }
 
     }
 
+    /*
+    This method (unused for our application) is called when nothing is
+    selected on the Age Filter Spinner - which cannot occur in our case.
+    However, it is a method that must be implemented regardless.
+    */
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
-
+        return;
     }
 }
