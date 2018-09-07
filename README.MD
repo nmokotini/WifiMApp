@@ -22,6 +22,14 @@ The Android App is contained within the main folder. To access the Rest-Api code
 The WifiMApp project is an interactive map of UCT's Upper Campus, allowing users to view a heat map of the Eduroam wifi network
 around campus. It was implemented as an Android application in an attempt to reach as many students as possible.
 
+## Directory Explination
+
+In order to view the Android Applications code, the following directory path must be followed:
+app > src > main > java > com > example > ntaolengmokotini > wifimapp
+
+In order to view the REST API's code, the following directory path must be followed:
+rest-api > src > main > java > capstone > restapi 
+
 ## Installation
 
 In order to run the WifiMApp Android Application, Android Studio must be used.
