@@ -1,6 +1,4 @@
-# Project Title
-
-WifiMApp
+# WifiMApp
 
 ## The Project
 
