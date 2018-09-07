@@ -30,6 +30,9 @@ app > src > main > java > com > example > ntaolengmokotini > wifimapp
 In order to view the REST API's code, the following directory path must be followed:
 rest-api > src > main > java > capstone > restapi 
 
+Please note that the GitHub Repository of the Rest-API can be found at : https://github.com/000kev/Capstone2018
+Dino Bossi coded the API under the branch APIv2. The directory layout is the same. 
+
 ## Installation
 
 In order to run the WifiMApp Android Application, Android Studio must be used.
